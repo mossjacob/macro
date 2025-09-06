@@ -22,15 +22,79 @@ header {
     padding: 20px;
     border-radius: 10px;
     margin-bottom: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
     color: #2c3e50;
     font-size: 2rem;
+    margin-bottom: 15px;
+}
+
+.instructions {
+    margin: 15px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #3498db;
+}
+
+.instructions p {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+    line-height: 1.4;
+}
+
+.parameter-guide {
+    display: grid;
+    grid-template-columns: auto 1fr 1fr 1fr 1fr;
+    gap: 10px;
+    font-size: 0.9rem;
+    align-items: center;
+}
+
+.parameter-guide span {
+    color: #555;
+    padding: 5px 8px;
+    background: white;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.model-connections {
+    margin: 15px 0;
+    padding: 15px;
+    background: #e8f5e8;
+    border-radius: 8px;
+    border-left: 4px solid #27ae60;
+}
+
+.model-connections h4 {
+    margin: 0 0 10px 0;
+    color: #27ae60;
+    font-size: 1rem;
+}
+
+.connection-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.connection {
+    background: white;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    line-height: 1.3;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.header-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
 }
 
 #year-display {
@@ -197,4 +261,212 @@ canvas {
     .metrics-grid {
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     }
+    
+    .parameter-guide {
+        grid-template-columns: 1fr;
+        gap: 5px;
+        text-align: left;
+    }
+    
+    .parameter-guide span {
+        text-align: left;
+        padding: 8px;
+    }
+    
+    .header-controls {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+}
+
+/* Configuration Modal Styles */
+.config-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.config-content {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.config-content h2 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-size: 1.8rem;
+    text-align: center;
+}
+
+.config-subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 25px;
+    font-style: italic;
+}
+
+.config-sections {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 25px;
+    margin-bottom: 25px;
+}
+
+.config-section h3 {
+    color: #3498db;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+}
+
+.parameter-item {
+    margin-bottom: 20px;
+}
+
+.parameter-item label {
+    display: block;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.parameter-item input[type="range"] {
+    width: 100%;
+    margin-bottom: 5px;
+}
+
+.parameter-item select {
+    width: 100%;
+    padding: 8px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}
+
+.param-description {
+    font-size: 0.8rem;
+    color: #666;
+    line-height: 1.3;
+    margin: 0;
+}
+
+.config-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.config-buttons button {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.config-buttons button.primary {
+    background: #3498db;
+    color: white;
+}
+
+.config-buttons button.primary:hover {
+    background: #2980b9;
+}
+
+.config-buttons button:not(.primary) {
+    background: #ecf0f1;
+    color: #2c3e50;
+}
+
+.config-buttons button:not(.primary):hover {
+    background: #bdc3c7;
+}
+
+@media (max-width: 768px) {
+    .config-sections {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .config-content {
+        margin: 10px;
+        padding: 20px;
+    }
+}
+
+/* Equilibration Styles */
+.equilibration-status {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.progress-container {
+    margin-bottom: 30px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 20px;
+    background: #ecf0f1;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3498db, #2ecc71);
+    border-radius: 10px;
+    width: 0%;
+    transition: width 0.3s ease;
+    animation: progressShimmer 2s infinite;
+}
+
+@keyframes progressShimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: 200px 0; }
+}
+
+.equilibration-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.eq-metric {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #3498db;
+}
+
+.eq-metric label {
+    display: block;
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.eq-metric span {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #2c3e50;
 }

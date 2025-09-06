@@ -1,4 +1,4 @@
-import { RandomEvent, ActiveEvent, HistoricalEvent, EventEffects } from './types.js';
+import type { RandomEvent, ActiveEvent, HistoricalEvent } from './types';
 
 export class RandomEventSystem {
     private events: RandomEvent[];

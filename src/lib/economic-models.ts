@@ -1,9 +1,9 @@
-import { SolowParams, SolowState, MonetaryParams, MonetaryState, FiscalParams, FiscalState } from './types.js';
+import type { SolowParams, SolowState, MonetaryParams, MonetaryState, FiscalParams, FiscalState } from './types';
 
 export class SolowGrowthModel {
     public params: SolowParams;
     public state: SolowState;
-    private previousGDPPerCapita?: number;
+    public currentGrowthRate: number = 0;
 
     constructor(initialParams: Partial<SolowParams> = {}) {
         this.params = {
@@ -15,6 +15,7 @@ export class SolowGrowthModel {
             A0: 1.0,
             K0: 100,
             L0: 1000,
+            technologyPlacement: 'neutral',
             ...initialParams
         };
         
@@ -36,9 +37,26 @@ export class SolowGrowthModel {
     
     private updateDerivedVariables(): void {
         const { technology, capital, labor } = this.state;
-        const { alpha } = this.params;
+        const { alpha, technologyPlacement } = this.params;
         
-        this.state.output = technology * Math.pow(capital, alpha) * Math.pow(labor, 1 - alpha);
+        // Apply technology based on placement setting
+        let effectiveCapital = capital;
+        let effectiveLabor = labor;
+        let neutralTechnology = 1;
+        
+        switch (technologyPlacement) {
+            case 'neutral':
+                neutralTechnology = technology;
+                break;
+            case 'labor_augmenting':
+                effectiveLabor = labor * technology;
+                break;
+            case 'capital_augmenting':
+                effectiveCapital = capital * technology;
+                break;
+        }
+        
+        this.state.output = neutralTechnology * Math.pow(effectiveCapital, alpha) * Math.pow(effectiveLabor, 1 - alpha);
         this.state.gdpPerCapita = this.state.output / labor;
         this.state.capitalPerWorker = capital / labor;
         this.state.outputPerWorker = this.state.output / labor;
@@ -49,6 +67,9 @@ export class SolowGrowthModel {
     public step(): void {
         const { capital, labor, technology } = this.state;
         const { alpha, delta, n, g, s } = this.params;
+        
+        // Store previous GDP before updating for growth calculation
+        const previousGDP = this.state.gdpPerCapita;
         
         const newTechnology = technology * (1 + g);
         const newLabor = labor * (1 + n);
@@ -64,6 +85,13 @@ export class SolowGrowthModel {
         this.state.capital = Math.max(newCapital, 0);
         
         this.updateDerivedVariables();
+        
+        // Calculate growth rate after updating
+        if (this.state.year >= 2 && previousGDP > 0) {
+            this.currentGrowthRate = ((this.state.gdpPerCapita - previousGDP) / previousGDP) * 100;
+        } else {
+            this.currentGrowthRate = 0;
+        }
     }
     
     public setSavingsRate(rate: number): void {
@@ -92,11 +120,60 @@ export class SolowGrowthModel {
     }
     
     public getGrowthRate(): number {
-        if (this.state.year < 2) return 0;
-        const currentGDP = this.state.gdpPerCapita;
-        const previousGDP = this.previousGDPPerCapita || currentGDP;
-        this.previousGDPPerCapita = currentGDP;
-        return ((currentGDP - previousGDP) / previousGDP) * 100;
+        return this.currentGrowthRate;
+    }
+
+    public equilibrate(maxIterations: number = 200, tolerance: number = 0.001): number {
+        let iteration = 0;
+        let converged = false;
+        
+        while (iteration < maxIterations && !converged) {
+            const prevCapitalPerWorker = this.state.capital / this.state.labor;
+            const prevGDPPerCapita = this.state.gdpPerCapita;
+            
+            // Run one step without incrementing year
+            const originalYear = this.state.year;
+            this.step();
+            this.state.year = originalYear; // Keep year at 0 during equilibration
+            
+            const newCapitalPerWorker = this.state.capital / this.state.labor;
+            const newGDPPerCapita = this.state.gdpPerCapita;
+            
+            // Check convergence
+            const capitalChange = Math.abs((newCapitalPerWorker - prevCapitalPerWorker) / prevCapitalPerWorker);
+            const gdpChange = Math.abs((newGDPPerCapita - prevGDPPerCapita) / prevGDPPerCapita);
+            
+            if (capitalChange < tolerance && gdpChange < tolerance) {
+                converged = true;
+            }
+            
+            iteration++;
+        }
+        
+        // Reset growth rate after equilibration
+        this.currentGrowthRate = 0;
+        return iteration;
+    }
+
+    public getSteadyStateValues(): { capitalPerWorker: number; gdpPerCapita: number; convergenceRate: number } {
+        const { alpha, delta, n, g } = this.params;
+        
+        // Theoretical steady-state capital per effective worker (for labor-augmenting tech)
+        // const steadyStateK_AL = Math.pow(s / (n + g + delta), 1 / (1 - alpha));
+        
+        // Adjust for technology placement
+        let effectiveTechGrowth = g;
+        if (this.params.technologyPlacement === 'neutral') {
+            effectiveTechGrowth = g;
+        } else if (this.params.technologyPlacement === 'capital_augmenting') {
+            effectiveTechGrowth = alpha * g;
+        }
+        
+        return {
+            capitalPerWorker: this.state.capitalPerWorker,
+            gdpPerCapita: this.state.gdpPerCapita,
+            convergenceRate: Math.abs(n + effectiveTechGrowth + delta) // Speed of convergence
+        };
     }
 }
 
@@ -131,8 +208,8 @@ export class MonetaryModel {
         this.state.inflation = expectedInflation + 0.5 * outputGap + (Math.random() - 0.5) * 0.01;
         this.state.inflation = Math.max(this.state.inflation, -0.05);
         
-        this.state.unemployment = Math.max(0.02, 
-            this.state.unemployment - 0.5 * outputGap + (Math.random() - 0.5) * 0.005);
+        this.state.unemployment = Math.max(0.02, Math.min(1.0,
+            this.state.unemployment - 0.5 * outputGap + (Math.random() - 0.5) * 0.005));
         
         this.state.priceLevel *= (1 + this.state.inflation);
         

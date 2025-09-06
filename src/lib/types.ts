@@ -1,3 +1,5 @@
+export type TechnologyPlacement = 'neutral' | 'labor_augmenting' | 'capital_augmenting';
+
 export interface SolowParams {
     alpha: number;
     delta: number;
@@ -7,6 +9,7 @@ export interface SolowParams {
     A0: number;
     K0: number;
     L0: number;
+    technologyPlacement: TechnologyPlacement;
 }
 
 export interface SolowState {
